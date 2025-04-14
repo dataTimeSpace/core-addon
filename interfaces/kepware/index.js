@@ -6,6 +6,13 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+// The iOS build is incompatible with the node-opcua library needed by this interface
+const {isLightweightMobile, isStandaloneMobile} = require('../../../../isMobile.js');
+if (isLightweightMobile || isStandaloneMobile) {
+    console.info('isMobile => skipping kepware interface');
+    return;
+}
+
 var server = require('../../../../libraries/hardwareInterfaces');
 var settings = server.loadHardwareInterface(__dirname);
 
