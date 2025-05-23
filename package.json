@@ -19,7 +19,7 @@
   "homepage": "https://github.com/dataTimeSpace/vuforia-spatial-core-addon#readme",
   "dependencies": {
     "node-fetch": "^2.7.0",
-    "node-opcua": "^2.133.0",
+    "node-opcua": "^2.153.0",
     "request": "^2.*"
   },
   "devDependencies": {
