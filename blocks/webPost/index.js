@@ -59,9 +59,6 @@
  * gui/index.html is the optional settings menu that pops up when you tap on the block
  */
 
-var request = require('request');
-
-
 var generalProperties = {
     // display name underneath icon in block menu
     name: 'webPost',
@@ -107,15 +104,21 @@ exports.render = function (object, frame, node, block, index, thisBlock, callbac
 
         console.log('making post request to', thisBlock.publicData);
 
-        request.post(
-            thisBlock.publicData.endpointUrl,
-            { json: {blockData: thisBlock.processedData} },
-            function (error, response, body) {
-                if (!error && response.statusCode === 200) {
-                    console.log(body);
-                }
+        fetch(
+            thisBlock.publicData.endpointUrl, {
+            method: 'POST',
+            headers: {
+                'Content-type': 'application/json',
+            },
+            body: JSON.stringify({blockData: thisBlock.processedData}),
             }
-        );
+        ).then(res => {
+            return res.text();
+        }).then(text => {
+            console.log(text);
+        }).catch(err => {
+            console.error(err);
+        });
 
     }
 
