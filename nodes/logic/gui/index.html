@@ -119,7 +119,16 @@ color: white"></div>
 
         if (typeof msg.iconImage !== "undefined") {
             if (typeof msg.iconImage === "string") {
-                icon.src = msg.iconImage;
+                try {
+                    const src = new URL(msg.iconImage);
+                    if (src.protocol !== 'https:' &&
+                        src.protocol !== 'http:') {
+                        throw new Error('Invalid url: ' + msg.iconImage);
+                    }
+                    icon.src = src;
+                } catch (e) {
+                    console.warn('Unable to load iconImage', e);
+                }
                 icon.style.display = "inline";
             } else {
                 icon.style.display = "none";
