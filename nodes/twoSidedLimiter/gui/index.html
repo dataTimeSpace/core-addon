@@ -146,17 +146,17 @@ color: #ffffff"></div>
                     this.svg = activate(msg.nodes[msg.node].text, elements);
 
                     //   console.log("from node: "+msg.nodes[msg.node].text);
-                    document.getElementById("textNote").innerHTML = msg.nodes[msg.node].text;
+                    document.getElementById("textNote").textContent = msg.nodes[msg.node].text;
                 } else {
                     this.svg = activate(msg.nodes[msg.node].name, elements);
                     //  console.log("from node: "+msg.nodes[msg.node].name);
-                    document.getElementById("textNote").innerHTML = msg.nodes[msg.node].name;
+                    document.getElementById("textNote").textContent = msg.nodes[msg.node].name;
                 }
             }
             objects.node = msg.node;
             objects.object = msg.object;
 
-            //  thisText.innerHTML = objects[msg.object].nodes[msg.node].name;
+            //  thisText.textContent = objects[msg.object].nodes[msg.node].name;
 
         }
 
