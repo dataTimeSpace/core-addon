@@ -92,12 +92,12 @@ color: white"></div>
                 // this needs to contain the final interface source
                 , "*");
             if(msg.nodes[msg.node]) {
-                thisText.innerHTML = msg.nodes[msg.node].name;
+                thisText.textContent = msg.nodes[msg.node].name;
             }
             objects.node = msg.node;
             objects.object = msg.object;
 
-            //  thisText.innerHTML = objects[msg.object].nodes[msg.node].name;
+            //  thisText.textContent = objects[msg.object].nodes[msg.node].name;
 
         }
 
@@ -114,7 +114,7 @@ color: white"></div>
         }
 
         if (typeof msg.renameNode !== "undefined") {
-            thisText.innerHTML = msg.renameNode;
+            thisText.textContent = msg.renameNode;
         }
 
         if (typeof msg.iconImage !== "undefined") {
