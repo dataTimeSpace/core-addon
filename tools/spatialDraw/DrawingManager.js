@@ -463,8 +463,10 @@ DrawingManager.Cursor = class {
      * @return {THREE.Vector3} - The position of the calculated point.
      */
     screenProject(pointerEvent, distance, camera, scene) {
-        const ray = this.getScreenRay(pointerEvent, camera);
-        return ray.origin.clone().add(ray.direction.clone().multiplyScalar(distance)).applyMatrix4(camera.matrixWorld).applyMatrix4(scene.matrixWorld.clone().invert());
+        const ray = this.getScreenRay(pointerEvent, camera); // world-space ray
+        const worldPoint = ray.origin.clone().add(ray.direction.clone().multiplyScalar(distance));
+        // To get the point in the local space of `scene` (e.g., mainContainerObj parent), invert it
+        return worldPoint.clone().applyMatrix4(scene.matrixWorld.clone().invert()); // <-- local point
     }
 };
 
@@ -582,7 +584,7 @@ DrawingManager.Tool.Line = class extends DrawingManager.Tool {
      * @param {Object} drawing - The serialized object defining the object to be drawn.
      */
     drawFromSerialized(parent, drawing) {
-        const meshLineMaterial = generateMeshLineMaterial(drawing.size, drawing.color);
+        const meshLineMaterial = generateMeshLineMaterial(drawing.size, drawing.color, this.drawingManager.resolution);
 
         const threePoints = drawing.points.map(point => new THREE.Vector3(point.x, point.y, point.z));
         const curve = new THREE.CatmullRomCurve3(threePoints);
@@ -799,7 +801,7 @@ DrawingManager.Cursor.Offset = class extends DrawingManager.Cursor {
      */
     constructor() {
         super();
-        this.offset = 500;
+        this.offset = 1000; // draw on a plane 1m away from the screen
         this.position = new THREE.Vector3(0, 0, 0);
     }
 
