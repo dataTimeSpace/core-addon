@@ -584,7 +584,7 @@ DrawingManager.Tool.Line = class extends DrawingManager.Tool {
      * @param {Object} drawing - The serialized object defining the object to be drawn.
      */
     drawFromSerialized(parent, drawing) {
-        const meshLineMaterial = generateMeshLineMaterial(drawing.size, drawing.color, this.drawingManager.resolution);
+        const meshLineMaterial = generateMeshLineMaterial(drawing.size, drawing.color);
 
         const threePoints = drawing.points.map(point => new THREE.Vector3(point.x, point.y, point.z));
         const curve = new THREE.CatmullRomCurve3(threePoints);

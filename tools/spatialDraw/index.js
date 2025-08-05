@@ -278,7 +278,6 @@ function initRenderer() {
 
             spatialInterface.changeFrameSize(mainData.width, mainData.height);
             spatialInterface.onWindowResized(({width, height}) => {
-                console.log('onWindowResized');
                 mainData.width = width;
                 mainData.height = height;
                 rendererWidth = width;
@@ -389,7 +388,6 @@ render = function(_now) {
         setMatrixFromArray(camera.projectionMatrix, lastProjectionMatrix);
         camera.projectionMatrixInverse.getInverse(camera.projectionMatrix);
         isProjectionMatrixSet = true;
-        console.log('setting new projectionMatrix', camera.projectionMatrix);
     }
 
     if (isProjectionMatrixSet && lastCameraMatrix && lastCameraMatrix.length === 16) {
