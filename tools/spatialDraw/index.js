@@ -43,6 +43,8 @@ if (!spatialInterface) {
 spatialInterface.setMoveDelay(500);
 spatialInterface.useWebGlWorker();
 spatialInterface.setAlwaysFaceCamera(true);
+// set this to a positive number so that the UI gets layered on top of other tools when the envelope opens
+spatialObject.fullscreenZPosition = 10;
 
 spatialInterface.wasToolJustCreated(justCreated => {
     if (justCreated) {
