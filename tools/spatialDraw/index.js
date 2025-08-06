@@ -12,7 +12,6 @@ let lastSync = 0;
 let realRenderer, renderer;
 let camera, scene;
 let mainContainerObj;
-let groundPlaneContainerObj;
 let spatialInterface;
 
 let rendererWidth;
@@ -20,7 +19,7 @@ let rendererHeight;
 let aspectRatio;
 
 let lastProjectionMatrix = null;
-let lastModelViewMatrix = null;
+let lastCameraMatrix = null;
 let isProjectionMatrixSet = false;
 let done = false; // used by gl renderer
 
@@ -279,7 +278,6 @@ function initRenderer() {
 
             spatialInterface.changeFrameSize(mainData.width, mainData.height);
             spatialInterface.onWindowResized(({width, height}) => {
-                console.log('onWindowResized');
                 mainData.width = width;
                 mainData.height = height;
                 rendererWidth = width;
@@ -308,6 +306,7 @@ function initRenderer() {
 
             // create a threejs camera and scene
             camera = new THREE.PerspectiveCamera( 70, aspectRatio, 1, 1000 );
+            camera.matrixAutoUpdate = false;
             scene = new THREE.Scene();
             scene.add(camera);
 
@@ -319,25 +318,22 @@ function initRenderer() {
             mainContainerObj.name = 'mainContainerObj';
             scene.add(mainContainerObj);
 
-            groundPlaneContainerObj = new THREE.Object3D();
-            groundPlaneContainerObj.matrixAutoUpdate = false;
-            groundPlaneContainerObj.name = 'groundPlaneContainerObj';
-            scene.add(groundPlaneContainerObj);
-
             // light the scene with ambient light
             const ambLight = new THREE.AmbientLight(0x404040);
             scene.add(ambLight);
             const directionalLight = new THREE.DirectionalLight(0xFFFFFF);
             directionalLight.position.set(0, 100000, 0);
-            groundPlaneContainerObj.add(directionalLight);
+            mainContainerObj.add(directionalLight);
             const directionalLight2 = new THREE.DirectionalLight(0xFFFFFF);
             directionalLight2.position.set(100000, 0, 100000);
-            groundPlaneContainerObj.add(directionalLight2);
+            mainContainerObj.add(directionalLight2);
 
             spatialInterface.onSpatialInterfaceLoaded(function() {
-                spatialInterface.subscribeToMatrix();
-                spatialInterface.addGroundPlaneMatrixListener(groundPlaneCallback);
-                spatialInterface.addMatrixListener(updateMatrices); // whenever we receive new matrices from the editor, update the 3d scene
+                spatialInterface.subscribeToCoordinateSystems([
+                    spatialObject.COORDINATE_SYSTEMS.CAMERA,
+                    spatialObject.COORDINATE_SYSTEMS.WORLD_ORIGIN,
+                    spatialObject.COORDINATE_SYSTEMS.PROJECTION_MATRIX,
+                ], onCoordinateSystems);
                 spatialInterface.registerTouchDecider(touchDecider);
                 spatialInterface.getScreenDimensions((width, height) => {
                     adjustSidebarForWindowSize(height);
@@ -357,23 +353,31 @@ function touchDecider(eventData) {
     return appActive;
 }
 
-function setMatrixFromArray(matrix, array) {
-    matrix.set( array[0], array[4], array[8], array[12],
-        array[1], array[5], array[9], array[13],
-        array[2], array[6], array[10], array[14],
-        array[3], array[7], array[11], array[15]
+function setMatrixFromArray(matrix, rowMajorArray) {
+    matrix.set( rowMajorArray[0], rowMajorArray[4], rowMajorArray[8], rowMajorArray[12],
+        rowMajorArray[1], rowMajorArray[5], rowMajorArray[9], rowMajorArray[13],
+        rowMajorArray[2], rowMajorArray[6], rowMajorArray[10], rowMajorArray[14],
+        rowMajorArray[3], rowMajorArray[7], rowMajorArray[11], rowMajorArray[15]
     );
 }
 
-function groundPlaneCallback(modelViewMatrix) {
-    setMatrixFromArray(groundPlaneContainerObj.matrix, modelViewMatrix);
-    mainContainerObj.groundPlaneContainerObj = groundPlaneContainerObj;
-}
+/**
+ * Handler for spatialInterface.subscribeToCoordinateSystems
+ * @param {Object} updatedSystems
+ */
+function onCoordinateSystems(updatedSystems) {
+    if (updatedSystems[spatialObject.COORDINATE_SYSTEMS.PROJECTION_MATRIX]) {
+        lastProjectionMatrix = updatedSystems[spatialObject.COORDINATE_SYSTEMS.PROJECTION_MATRIX];
+    }
 
+    if (updatedSystems[spatialObject.COORDINATE_SYSTEMS.WORLD_ORIGIN]) {
+        setMatrixFromArray(mainContainerObj.matrix, updatedSystems[spatialObject.COORDINATE_SYSTEMS.WORLD_ORIGIN]);
+        mainContainerObj.updateMatrixWorld(true);
+    }
 
-function updateMatrices(modelViewMatrix, projectionMatrix) {
-    lastProjectionMatrix = projectionMatrix;
-    lastModelViewMatrix = modelViewMatrix;
+    if (updatedSystems[spatialObject.COORDINATE_SYSTEMS.CAMERA]) {
+        lastCameraMatrix = updatedSystems[spatialObject.COORDINATE_SYSTEMS.CAMERA];
+    }
 }
 
 // Draw the scene repeatedly
@@ -386,12 +390,14 @@ render = function(_now) {
         isProjectionMatrixSet = true;
     }
 
-    if (isProjectionMatrixSet && lastModelViewMatrix && lastModelViewMatrix.length === 16) {
-        // update model view matrix
-        setMatrixFromArray(mainContainerObj.matrix, lastModelViewMatrix);
-
+    if (isProjectionMatrixSet && lastCameraMatrix && lastCameraMatrix.length === 16) {
         // render the scene
         mainContainerObj.visible = true;
+
+        // manually update the camera's local/world/inverse matrices
+        setMatrixFromArray(camera.matrix, lastCameraMatrix);
+        camera.updateMatrixWorld(true);
+        camera.matrixWorldInverse.copy(camera.matrixWorld).invert();
 
         if (renderer && scene && camera) {
             drawingManager.triggerCallbacks('render', _now);
