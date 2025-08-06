@@ -292,6 +292,7 @@ function initRenderer() {
 
             realRenderer = new THREE.WebGLRenderer( { alpha: true } );
             realRenderer.debug.checkShaderErrors = false;
+            // set the initial pixelRatio using the devicePixelRatio; overwrite later with getEnvironmentVariables
             realRenderer.setPixelRatio(window.devicePixelRatio);
             realRenderer.setSize(rendererWidth, rendererHeight);
             // eslint-disable-next-line no-global-assign
@@ -337,6 +338,11 @@ function initRenderer() {
                 spatialInterface.registerTouchDecider(touchDecider);
                 spatialInterface.getScreenDimensions((width, height) => {
                     adjustSidebarForWindowSize(height);
+                });
+                spatialInterface.getEnvironmentVariables().then((environmentVariables) => {
+                    if (!window.isDesktop() && typeof environmentVariables.mobileCanvasPixelRatio === 'number') {
+                        realRenderer.setPixelRatio(environmentVariables.mobileCanvasPixelRatio);
+                    }
                 });
                 resolve();
             });
