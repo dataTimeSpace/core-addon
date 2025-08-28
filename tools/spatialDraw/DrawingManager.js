@@ -13,7 +13,7 @@ class DrawingManager {
             'ICON': new DrawingManager.Tool.Icon(this)
         };
         this.cursorMap = {
-            'PROJECTION': new DrawingManager.Cursor.SmoothProjection(),
+            'PROJECTION': new DrawingManager.Cursor.Projection(), // TODO: go back to SmoothProjection after iterating
             'OFFSET': new DrawingManager.Cursor.Offset(),
         };
 
@@ -817,38 +817,40 @@ DrawingManager.Cursor.Offset = class extends DrawingManager.Cursor {
     }
 };
 
-// DrawingManager.Cursor.Projection = class extends DrawingManager.Cursor {
-//     /**
-//      * Creates a Projection Cursor.
-//      */
-//     constructor() {
-//         super();
-//         this.position = new THREE.Vector3(0, 0, 0);
-//     }
-//
-//     /**
-//      * Updates the cursor position.
-//      * @param {THREE.Scene} scene - The scene to calculate the position in.
-//      * @param {THREE.Camera} camera - The camera used for calculating the cursor position.
-//      * @param {Object} pointerEvent - The triggering pointer event.
-//      */
-//     updatePosition(scene, camera, pointerEvent) {
-//         const offset = pointerEvent.projectedZ;
-//         if (!offset) {
-//             return;
-//         }
-//         this.position = super.screenProject(pointerEvent, offset, camera, scene);
-//     }
-//
-//     /**
-//      * Gets the current cursor position.
-//      * @returns {THREE.Vector3} - The position of the cursor in the scene.
-//      */
-//     getPosition() {
-//         return this.position;
-//     }
-// };
+DrawingManager.Cursor.Projection = class extends DrawingManager.Cursor {
+    /**
+     * Creates a Projection Cursor.
+     */
+    constructor() {
+        super();
+        this.position = new THREE.Vector3(0, 0, 0);
+    }
 
+    /**
+     * Updates the cursor position.
+     * @param {THREE.Scene} scene - The scene to calculate the position in.
+     * @param {THREE.Camera} camera - The camera used for calculating the cursor position.
+     * @param {Object} pointerEvent - The triggering pointer event.
+     */
+    updatePosition(scene, camera, pointerEvent) {
+        const offset = pointerEvent.projectedZ;
+        if (!offset) {
+            return;
+        }
+        this.position = super.screenProject(pointerEvent, offset, camera, scene);
+    }
+
+    /**
+     * Gets the current cursor position.
+     * @returns {THREE.Vector3} - The position of the cursor in the scene.
+     */
+    getPosition() {
+        return this.position;
+    }
+};
+
+// TODO: 1) clamp the minimimum y position to the groundplane
+// TODO: 2) draw across holes but prevent unstable plane from causing points to fly unexpectedly towards the camera
 DrawingManager.Cursor.SmoothProjection = class extends DrawingManager.Cursor {
     /**
      * Creates a Smooth Projection Cursor, preventing the cursor from jumping into the distance.
