@@ -376,6 +376,7 @@ function setMatrixFromArray(matrix, rowMajorArray) {
 function onCoordinateSystems(updatedSystems) {
     if (updatedSystems[spatialObject.COORDINATE_SYSTEMS.PROJECTION_MATRIX]) {
         lastProjectionMatrix = updatedSystems[spatialObject.COORDINATE_SYSTEMS.PROJECTION_MATRIX];
+        isProjectionMatrixSet = false;
     }
 
     if (updatedSystems[spatialObject.COORDINATE_SYSTEMS.WORLD_ORIGIN]) {
