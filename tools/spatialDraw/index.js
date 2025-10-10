@@ -395,7 +395,7 @@ render = function(_now) {
     // only set the projection matrix for the camera 1 time, since it stays the same
     if (!isProjectionMatrixSet && lastProjectionMatrix && lastProjectionMatrix.length === 16) {
         setMatrixFromArray(camera.projectionMatrix, lastProjectionMatrix);
-        camera.projectionMatrixInverse.getInverse(camera.projectionMatrix);
+        camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
         isProjectionMatrixSet = true;
     }
 
