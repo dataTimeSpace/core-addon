@@ -19,7 +19,7 @@
   "homepage": "https://github.com/dataTimeSpace/vuforia-spatial-core-addon#readme",
   "dependencies": {
     "node-fetch": "^3.3.2",
-    "node-opcua": "^2.162.0"
+    "node-opcua": "^2.165.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
