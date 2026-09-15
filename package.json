@@ -22,7 +22,7 @@
     "node-opcua": "^2.175.3"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.2",
-    "eslint": "^9.39.2"
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.10.0"
   }
 }
