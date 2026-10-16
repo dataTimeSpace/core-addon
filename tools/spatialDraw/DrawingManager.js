@@ -479,7 +479,9 @@ DrawingManager.Cursor = class {
 function generateMeshLineMaterial(size, color) {
     return new MeshLineMaterial({
         lineWidth: size,
-        color: color
+        color: color,
+        depthTest: true,
+        depthWrite: true
     });
 }
 

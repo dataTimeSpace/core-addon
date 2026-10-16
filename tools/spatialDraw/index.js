@@ -17,6 +17,7 @@ let spatialInterface;
 let rendererWidth;
 let rendererHeight;
 let aspectRatio;
+let rendererViewport = null;
 
 let lastProjectionMatrix = null;
 let lastCameraMatrix = null;
@@ -31,9 +32,40 @@ let mainData = {
 let rendererStarted = false;
 
 // eslint-disable-next-line no-undef
-main = ({width, height}) => {
-    mainData.width = width;
-    mainData.height = height;
+main = ({width, height, viewport}) => {
+    rendererViewport = viewport || {
+        cssWidth: width,
+        cssHeight: height,
+        drawingBufferWidth: width,
+        drawingBufferHeight: height,
+        pixelRatio: 1,
+    };
+    mainData.width = rendererViewport.cssWidth;
+    mainData.height = rendererViewport.cssHeight;
+};
+
+window.glProxy.resize = (viewport) => {
+    if (!viewport) return;
+    rendererViewport = viewport;
+    mainData.width = viewport.cssWidth;
+    mainData.height = viewport.cssHeight;
+    rendererWidth = viewport.cssWidth;
+    rendererHeight = viewport.cssHeight;
+    aspectRatio = rendererWidth / rendererHeight;
+
+    if (renderer) {
+        renderer.setPixelRatio(viewport.pixelRatio);
+        renderer.setSize(rendererWidth, rendererHeight);
+    }
+    if (realRenderer) {
+        realRenderer.setPixelRatio(viewport.pixelRatio);
+        realRenderer.setSize(rendererWidth, rendererHeight);
+    }
+    if (camera) camera.aspect = aspectRatio;
+    if (renderer) {
+        isProjectionMatrixSet = false;
+        spatialInterface.subscribeToMatrix();
+    }
 };
 
 if (!spatialInterface) {
@@ -292,10 +324,11 @@ function initRenderer() {
                 adjustSidebarForWindowSize(height);
             });
 
+            const compositorPixelRatio = rendererViewport ? rendererViewport.pixelRatio : 1;
+
             realRenderer = new THREE.WebGLRenderer( { alpha: true } );
             realRenderer.debug.checkShaderErrors = false;
-            // set the initial pixelRatio using the devicePixelRatio; overwrite later with getEnvironmentVariables
-            realRenderer.setPixelRatio(window.devicePixelRatio);
+            realRenderer.setPixelRatio(compositorPixelRatio);
             realRenderer.setSize(rendererWidth, rendererHeight);
             // eslint-disable-next-line no-global-assign
             realGl = realRenderer.getContext();
@@ -303,7 +336,7 @@ function initRenderer() {
             // create a fullscreen webgl renderer for the threejs content and add to the dom
             renderer = new THREE.WebGLRenderer( { context: gl, alpha: true } );
             renderer.debug.checkShaderErrors = false;
-            //renderer.setPixelRatio( window.devicePixelRatio );
+            renderer.setPixelRatio(compositorPixelRatio);
             renderer.setSize( rendererWidth, rendererHeight );
             //document.body.appendChild( renderer.domElement );
 
@@ -410,6 +443,13 @@ render = function(_now) {
 
         if (renderer && scene && camera) {
             drawingManager.triggerCallbacks('render', _now);
+            // The host resets the shared context between renderers. Three.js caches GL state inside
+            // each renderer and therefore may not emit these calls again on later frames. Reassert
+            // Spatial Draw's depth contract immediately before rendering so its lines test against
+            // the main scene's retained depth buffer.
+            gl.enable(gl.DEPTH_TEST);
+            gl.depthFunc(gl.LEQUAL);
+            gl.depthMask(true);
             renderer.render(scene, camera);
             if (done && realGl) {
                 for (let proxy of proxies) {
