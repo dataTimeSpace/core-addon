@@ -1,4 +1,4 @@
-/* global DrawingManager, realGl, gl, proxies */
+/* global DrawingManager, realGl, gl, proxies, createToolI18n */
 
 gl.enableWebGL2 = false;
 
@@ -39,6 +39,12 @@ main = ({width, height}) => {
 if (!spatialInterface) {
     spatialInterface = new SpatialInterface();
 }
+
+// the drawing controls are icons; the tool's only text is its name, the frame's title
+const i18n = createToolI18n(spatialInterface, 'spatialDraw');
+i18n.onChange(() => {
+    document.title = i18n.t('title', 'Spatial Draw');
+});
 
 spatialInterface.setMoveDelay(500);
 spatialInterface.useWebGlWorker();
