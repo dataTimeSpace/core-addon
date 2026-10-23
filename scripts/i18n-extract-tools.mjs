@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 // i18n-extract-tools.mjs (npm run i18n:extract-tools; add `-- --check` to compare without writing)
 //
-// Writes the English catalog tools/<tool>/locales/en/<tool>.json of every tool that has the translation helper
-// (tools/<tool>/i18n.js), from the t('key', 'English default') calls in the tool's own .js, .mjs and .html files
-// (inline scripts only). Vendored folders (resources, thirdPartyCode, node_modules), *.min.js and the helper itself
-// are skipped. The English catalogs are generated, never edited by hand: keys sorted and nested at the dots
+// Writes the English catalog tools/<tool>/locales/en/<tool>.json of every tool whose index.html loads the
+// translation helper (objectDefaultFiles/i18n.js, served by the edge server), from the t('key', 'English default')
+// calls in the tool's own .js, .mjs and .html files (inline scripts only). Vendored folders (resources,
+// thirdPartyCode, node_modules) and *.min.js are skipped. The English catalogs are generated, never edited by hand: keys sorted and nested at the dots
 // (i18next's key separator), 2-space JSON with a trailing newline, like the interface catalogs. A call whose options
 // carry `count` gives <key>_one and <key>_other (i18next JSON v4), from defaultValue_one / defaultValue_other when
 // given, else from the default.
@@ -18,7 +18,7 @@ import process from 'node:process';
 
 const REPO_ROOT = path.resolve(path.dirname(process.argv[1]), '..');
 const TOOLS_DIR = path.join(REPO_ROOT, 'tools');
-const HELPER_FILE = 'i18n.js';
+const HELPER_SCRIPT = /<script[^>]+src=["']objectDefaultFiles\/i18n\.js["']/;
 const SOURCE_LOCALE = 'en';
 const SKIPPED_DIRECTORIES = ['locales', 'node_modules', 'resources', 'thirdPartyCode'];
 const SOURCE_EXTENSIONS = ['.js', '.mjs', '.html'];
@@ -27,11 +27,20 @@ const KEYWORDS_BEFORE_REGEX = ['return', 'typeof', 'instanceof', 'in', 'of', 'ne
 const ESCAPES = {n: '\n', t: '\t', r: '\r', b: '\b', f: '\f', v: '\v', 0: '\0'};
 
 /**
+ * @param {string} tool - folder name
+ * @return {boolean} whether the tool's index.html loads objectDefaultFiles/i18n.js
+ */
+function loadsHelper(tool) {
+    const indexHtml = path.join(TOOLS_DIR, tool, 'index.html');
+    return fs.existsSync(indexHtml) && HELPER_SCRIPT.test(fs.readFileSync(indexHtml, 'utf8'));
+}
+
+/**
  * @return {Array<string>} the folder names of the tools that use the translation helper
  */
 function listTools() {
     return fs.readdirSync(TOOLS_DIR, {withFileTypes: true})
-        .filter((entry) => entry.isDirectory() && fs.existsSync(path.join(TOOLS_DIR, entry.name, HELPER_FILE)))
+        .filter((entry) => entry.isDirectory() && loadsHelper(entry.name))
         .map((entry) => entry.name)
         .sort();
 }
@@ -49,8 +58,7 @@ function listSourceFiles(toolDir) {
                 if (!SKIPPED_DIRECTORIES.includes(entry.name)) {
                     walk(full);
                 }
-            } else if (SOURCE_EXTENSIONS.includes(path.extname(entry.name)) && !entry.name.endsWith('.min.js') &&
-                full !== path.join(toolDir, HELPER_FILE)) {
+            } else if (SOURCE_EXTENSIONS.includes(path.extname(entry.name)) && !entry.name.endsWith('.min.js')) {
                 files.push(full);
             }
         }
