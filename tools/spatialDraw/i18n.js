@@ -13,8 +13,8 @@
  *   (HTML-escaped unless options.interpolation.escapeValue is false), plurals with options.count and
  *   defaultValue_one / defaultValue_other.
  * - onChange(render) calls render now and again whenever the language or its catalogs change, so whatever render
- *   sets (DOM text, canvas text, labels in the 3D scene) follows the language. Numbers shown to people go through
- *   Intl with i18n.getLanguage(); unit symbols stay as they are.
+ *   sets (DOM text, canvas text, labels in the 3D scene) follows the language; it returns a function that stops
+ *   the calls. Numbers shown to people go through Intl with i18n.getLanguage(); unit symbols stay as they are.
  * - English is the code's own defaults, so nothing is fetched while the language is English.
  * - An older edge server (no loadTranslations) shows the English defaults and formats for the browser language.
  */
@@ -59,7 +59,7 @@
      * @param {SpatialInterface} spatialInterface
      * @param {string} ns - the tool's namespace, its folder name
      * @return {{t: function(string, (string|Object)=, Object=): string, getLanguage: function(): string,
-     *     onChange: function(function())}}
+     *     onChange: function(function()): function()}}
      */
     function createToolI18n(spatialInterface, ns) {
         let translate = translateDefault;
@@ -87,9 +87,8 @@
             renderers.slice().forEach(runRenderer);
         }
 
-        // A t from loadTranslations follows later language changes too, but it switches only once the new
-        // catalogs have arrived, after onLanguageChanged has fired. A new t per language resolves when its
-        // catalogs are in, which is the moment to render.
+        // The t from loadTranslations switches only once the new catalogs have arrived, after onLanguageChanged
+        // has fired. Asking again resolves at that moment (with the same t: one i18next instance per tool).
         function useLanguage(language) {
             if (language === requestedLanguage) {
                 return;
@@ -125,6 +124,12 @@
                 renderers.push(renderer);
                 document.documentElement.lang = getLanguage();
                 runRenderer(renderer);
+                return () => {
+                    const index = renderers.indexOf(renderer);
+                    if (index !== -1) {
+                        renderers.splice(index, 1);
+                    }
+                };
             }
         };
     }
