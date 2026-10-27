@@ -5,8 +5,8 @@ description: Bring every language of the core add-on's localized tools up to dat
 
 # Update localization: core-addon
 
-English is the source and the fallback; this skill brings the 9 other languages (`sv`, `pt-BR`, `fr-FR`, `fr-CA`,
-`es-ES`, `es-419`, `ja`, `de`, `hi`) up to date with it. The procedure, rules and tools live in the localization
+English is the source and the fallback; this skill brings the 10 other languages (`sv`, `pt-BR`, `fr-FR`, `fr-CA`,
+`es-ES`, `es-419`, `ja`, `de`, `hi`, `nl`) up to date with it. The procedure, rules and tools live in the localization
 toolkit repo (`dataTimeSpace/localization`); this file holds only what is specific to core-addon. **If this file and the
 toolkit's `LOCALIZATION_UPDATE_GUIDE.md` disagree, the guide wins.**
 
@@ -22,7 +22,7 @@ toolkit's `LOCALIZATION_UPDATE_GUIDE.md` disagree, the guide wins.**
    branch that holds the text change; on `main`, create `localization-update-<yyyy-mm-dd>` first.
 5. Shell state does not persist between commands: use absolute paths everywhere. Below, `<toolkit>` is the toolkit
    folder, `<repo>` the root of this clone, `<scratch>` a temporary folder outside both repos, `<locales>` is
-   `sv,pt-BR,fr-FR,fr-CA,es-ES,es-419,ja,de,hi` and `<run>` one id for this run (`<yyyy-mm-dd>-core`).
+   `sv,pt-BR,fr-FR,fr-CA,es-ES,es-419,ja,de,hi,nl` and `<run>` one id for this run (`<yyyy-mm-dd>-core`).
 
 Never push. No customer names or data anywhere (catalogs, commits, prompts to subagents). No em dashes. Stored data,
 protocol messages, exports and logs stay English (guide section 2).
